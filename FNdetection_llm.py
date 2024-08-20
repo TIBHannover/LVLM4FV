@@ -167,7 +167,7 @@ def verification_loop_txt(model,task1_out,corpus,question,batch_size,top_k,evide
             prompt = get_prompt_text(question,task1_out[q_key]['query'], batch_corpus)
             #generated_texts = model.get_response_orig(prompt)
             #generated_texts, generated_texts_probas = model.get_response_pbc(prompt)
-            generated_texts, generated_texts_probas = model.get_response_binary(prompt,model_mode) 
+            generated_texts, generated_texts_probas = model.get_response_YN(prompt,model_mode)
             #if class_type=='binary':
             #    generated_texts, generated_texts_probas = model.get_response_binary(prompt,model_mode)
             #else:
@@ -186,9 +186,6 @@ def verification_loop_txt(model,task1_out,corpus,question,batch_size,top_k,evide
 
 def verification_loop_txt_two_level(model,task1_out,corpus,level1_question,level2_question,batch_size,top_k,evidence_type,class_type,run_dir):
     ############################# first level prompt: detect NEI class ########################
-    #question="can this evidence confirm or reject this claim?answer with yes or no."
-    #question="Is this evidence sufficient to confirm or reject this claim?answer with yes or no."
-    #question="Is this evidence sufficient to confirm or reject this claim?answer with yes if it is suffiecient and aswer with no if it is not enough information"
     model_mode='level1'
     level1_out=verification_loop_txt(model,task1_out,corpus,level1_question,batch_size,top_k,evidence_type,class_type,model_mode,run_dir)
     #level1_out=majority_voting(level1_out,run_dir)
@@ -289,9 +286,7 @@ def verification_loop_img(model,task1_out,question,batch_size,top_k,evidence_typ
         pickle.dump(task1_out, f) 
     return task1_out
 
-def verification_loop_multimodal(model,task1_out,txt_corpus,question,batch_size,top_k,evidence_type,class_type,model_mode,run_dir):  
-    with open(os.path.join(run_dir,'llm_input_dict.pkl'), 'wb') as f:
-        pickle.dump(task1_out, f) 
+def verification_loop_multimodal(model,task1_out,txt_corpus,question,batch_size,top_k,evidence_type,class_type,model_mode,run_dir):
     start_time = time.time()
     Transforms=T.Resize((224,224))
     for q_key in tqdm.tqdm(task1_out):
@@ -303,23 +298,17 @@ def verification_loop_multimodal(model,task1_out,txt_corpus,question,batch_size,
             img_evidences =task1_out[q_key][f'top_pred_{top_k}_img']
             txt_evidences =task1_out[q_key][f'top_pred_{top_k}']
             for c_key in img_evidences:
-                img =T.PILToTensor()(Image.open(os.path.join('./data/factify/valid/images',img_evidences[c_key]['candidate-image-key'])).convert("RGB"))
+                img =T.PILToTensor()(Image.open(os.path.join('./data/Factify/valid/images',img_evidences[c_key]['candidate-image-key'])).convert("RGB"))
                 E_pool_img[img_evidences[c_key]['candidate-image-key']]=Transforms(img)
                 E_pool_txt[txt_evidences[c_key]['candidate-image-key']]=txt_corpus[txt_evidences[c_key]['candidate-image-key']]
         elif evidence_type=='gold':
             img_evidences=task1_out[q_key]['pos_img']
             txt_evidences =task1_out[q_key]['pos']
             for c_key in img_evidences:
-                img =T.PILToTensor()(Image.open(os.path.join('./data/factify/valid/images',c_key)).convert("RGB"))
+                img =T.PILToTensor()(Image.open(os.path.join('./data/Factify/valid/images',c_key)).convert("RGB"))
                 E_pool_img[c_key]=Transforms(img)
             for key in txt_evidences:
                 E_pool_txt[key]=txt_corpus[key]
-        else:
-            print('pending')   
-            #evidences =task1_out[q_key][f'mocheg_top_{top_k}']
-            #for c_key in evidences:
-            #    img =T.PILToTensor()(Image.open(os.path.join('./data/images',evidences[c_key]['corpus_id'])).convert("RGB"))
-            #    E_pool[evidences[c_key]['corpus_id']]=Transforms(img)
             
         img_corpus_dataset = IRDataset(corpus=E_pool_img)
         corpus_loader = DataLoader(img_corpus_dataset, batch_size=batch_size, shuffle=False)
@@ -331,9 +320,9 @@ def verification_loop_multimodal(model,task1_out,txt_corpus,question,batch_size,
                 txt_evidenc=E_pool_txt[txt_c]
                 prompt = get_prompt_multimodal(task1_out[q_key]['query'], question,txt_evidenc)
                 if class_type=='binary':
-                    generated_texts, generated_texts_probas = model.get_response_binary(model_mode,images=batch_corpus, queries=[prompt] * batch_size) 
+                    generated_texts, generated_texts_probas = model.get_response_YN(model_mode,images=batch_corpus, queries=[prompt] * batch_size)
                 else:
-                    generated_texts, generated_texts_probas = model.get_response_multiple(images=batch_corpus, queries=[prompt] * batch_size)
+                    generated_texts, generated_texts_probas = model.get_response_YNN(images=batch_corpus, queries=[prompt] * batch_size)
                 for generated_text, batch_key, generated_text_proba in zip(generated_texts, batch_keys, generated_texts_probas):
                     task1_out[q_key]['top_verif_pred'].append(
                         {"corpus_key": batch_key, "generated-text": generated_text, "score": generated_text_proba, "txt_corpus_key":txt_c}) 
@@ -371,14 +360,7 @@ def level1_filtering(task1_out,run_dir):
         # Sort by count and then by max_score
         grouped = grouped.sort_values(by=['count', 'max_score'], ascending=False)
         # Get the label with the highest count and max_score
-        final_label = grouped.index[0]  
-        #final_label=predictions_df['generated-text'].value_counts().idxmax()
-        #final_label_count=predictions_df['generated-text'].value_counts()[final_label]
-        #if (final_label=='NEI' and final_label_count==5):
-            #filtered = predictions_df[predictions_df['count'] >= 4]
-        #    final_label='NEI'
-        #else:
-        #    final_label='yes'
+        final_label = grouped.index[0]
         task1_out[q_id]['final_label']=final_label        
     return task1_out    
 
@@ -424,7 +406,7 @@ def build_binary_verification_data(task1_out):
             task1_out.pop(q_key)
     return task1_out
 def calc_metric( y_true, y_pred,args  ):
-    
+
     # pre = precision_score(y_true, y_pred, average='micro')
     # recall = recall_score(y_true, y_pred, average='micro')
     f1 = f1_score(y_true, y_pred, average='micro')
@@ -505,7 +487,7 @@ def test(args):
         
     elif args.media=='txt':
         print('loading the text model starts:')
-        model=Mistral_verification_test(model=args.model_name, tokenizer=args.model_name,max_length=args.max_seq_length) # if two_level_prompotin=True
+        model=my_Mistral_verification(model=args.model_name, tokenizer=args.model_name,max_length=args.max_seq_length) # if two_level_prompotin=True
         #model=my_Mistral_verification(model=args.model_name, tokenizer=args.model_name,max_length=args.max_seq_length)
         
         if args.two_level_prompting:
@@ -520,7 +502,6 @@ def test(args):
         model=LLaVa_verification_multimodal(model=args.model_name, processor=args.model_name,max_length=args.max_seq_length)
         #model=InstructBLIP_verification_multimodal(model=args.model_name, processor=args.model_name,max_length=args.max_seq_length)
         if args.two_level_prompting:
-            print('pending')
             final_out=verification_loop_multimodal_two_level(model,task1_out,text_corpus,args.level1_prompt,args.level2_prompt,args.batch_size,args.top_k,args.evidence_type,args.class_type,args.run_dir)
         else:  
             verificaiton_out=verification_loop_multimodal(model,task1_out,text_corpus,args.prompt,args.batch_size,args.top_k,args.evidence_type,args.class_type,'binary',args.run_dir)
@@ -540,8 +521,7 @@ def get_args():
     #parser.add_argument("--prompt", type=str, help="LLM Prompt",default='Does this evidence support or refute this claim?answer with yes if it supports, answer with no if it refutes and answer with none if it does not provide enough information.') #txt prompt
     #parser.add_argument("--prompt", type=str, help="LLM Prompt",default='Does this image support or refute this claim?answer with yes if it supports, answer with no if it refutes and answer with none if it does not provide enough information.') #img prompt
     #parser.add_argument("--prompt", type=str, help="LLM Prompt",default='Does this image and evidence pair support or refute this claim?answer with yes if it supports, answer with no if it refutes') #binary class multimodal prompt
-    parser.add_argument("--prompt", type=str, help="LLM Prompt",default='Does this image and text evidence pair support or refute this claim?answer with yes if it supports, answer with no if it refutes and answer with none if it does not provide enough information.') #multiple class multimodal prompt with 
-    #parser.add_argument("--prompt", type=str, help="LLM Prompt",default='Does this text evidence support or refute this claim?answer with yes if it supports, answer with no if it refutes and answer with none if it does not provide enough information.') #multiple class multimodal prompt with 
+    parser.add_argument("--prompt", type=str, help="LLM Prompt",default='Does this image and text evidence pair support or refute this claim?answer with yes if it supports, answer with no if it refutes and answer with none if it does not provide enough information.') #multiple class multimodal prompt with
     #parser.add_argument("--prompt", type=str, help="LLM Prompt",default='Does this evidence confirm or reject this claim?answer with yes if it confirm, answer with no if it rejects.') #binary class text prompt
     parser.add_argument("--batch_size", type=int,help="bayad mazrabi az mocheg top_k retrieved bashe", default=1 )
     parser.add_argument("--top_k", type=int, default=5)
@@ -551,8 +531,8 @@ def get_args():
     parser.add_argument("--class_type", type=str, default="multiple") #{binary, multiple}
     parser.add_argument("--evidence_type", type=str, default="gold")#{retrieved,gold,mocheg}
     parser.add_argument("--two_level_prompting",default=True) #{True,False} if True set the level1_prompt and level2_prompt
-    parser.add_argument("--level1_prompt",default="Is this image and text evidence sufficient to confirm or reject this claim?answer with yes if they are suffiecient and aswer with no if they are not enough information")#{retrieved,gold,mocheg}
-    #parser.add_argument("--level2_prompt",default="Do this image and text evidence confirm or reject this claim?answer with yes if they confirm, answer with no if they reject.")#{retrieved,gold,mocheg}
+    parser.add_argument("--level1_prompt",default="Is this image and text evidence sufficient to confirm or reject this claim?answer with yes if they are suffiecient and aswer with no if they are not enough information")
+    #parser.add_argument("--level2_prompt",default="Do this image and text evidence confirm or reject this claim?answer with yes if they confirm, answer with no if they reject.")
     parser.add_argument("--level2_prompt",default="Does this text evidence support or refute this claim?answer with yes if it supports, answer with no if it refutes.")
     #parser.add_argument('--task1_out', help='input', default='./retrieval/output/ir_llms/annotation/mocheg_plus_vlm_top10/00002-test-Salesforce-instructblip-flan-t5-xl-2024-01-23_21-43-49') # VLM union image evidence folder
     #parser.add_argument('--task1_out', help='input', default='./retrieval/output/ir_llms/00073-test-Salesforce-instructblip-flan-t5-xl-2023-10-22_22-50-02')  # VLM image evidence folder
