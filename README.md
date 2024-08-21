@@ -1,6 +1,7 @@
 # Multimodal Misinformation Detection using Large Vision-Language Models
 
 This repository is the official implementation of [Multimodal Misinformation Detection using Large Vision-Language Models](https://doi.org/10.1145/3627673.3679826) published in CIKM 2024.
+
 Please use the following citation:
 ```
 @InProceedings{cikm_Tahmasebi24,
