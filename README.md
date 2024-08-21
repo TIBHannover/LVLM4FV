@@ -1,4 +1,3 @@
-[![Review Assignment Due Date](https://classroom.github.com/assets/deadline-readme-button-24ddc0f5d75046c5622901739e7c5dd533143b0c8e959d652212380cedb1ea36.svg)](https://classroom.github.com/a/C934JvXq)
 # Multimodal Misinformation Detection using Large Vision-Language Models
 
 This repository is the official implementation of [Multimodal Misinformation Detection using Large Vision-Language Models](https://doi.org/10.1145/3627673.3679826) published in CIKM 2024.
@@ -13,6 +12,14 @@ pip install -r requirements.txt
 ```
 
 ## Dataset
+
+
+- MOCHEG: You can download dataset [here](https://docs.google.com/forms/d/e/1FAIpQLScAGehM6X9ARZWW3Fgt7fWMhc_Cec6iiAAN4Rn1BHAk6KOfbw/viewform).
+
+    For more information on the dataset format and structure, please refer to their Please check their [official repository](https://github.com/VT-NLP/Mocheg).
+- Factify: The dataset can be downloaded [here](https://drive.google.com/drive/folders/1MPgUN6xAnocENZ5fefny3eGOnD7KPZ5M?usp=sharing).
+
+    Additional details can be found on their [official website](https://competitions.codalab.org/competitions/35153).
 
 ## Evaluation
 
