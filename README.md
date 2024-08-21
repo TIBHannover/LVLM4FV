@@ -22,7 +22,10 @@ pip install -r requirements.txt
     Additional details can be found on their [official website](https://competitions.codalab.org/competitions/35153).
 
 ## Evaluation
-
+To run the pipeline and evaluate on datasets, run:
+```
+bash eval.sh
+```
 ## Credit
 This repository is built by [Sahar Tahmasebi](https://github.com/sahartahmasebi). 
 
