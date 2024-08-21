@@ -1,4 +1,3 @@
-[![Review Assignment Due Date](https://classroom.github.com/assets/deadline-readme-button-24ddc0f5d75046c5622901739e7c5dd533143b0c8e959d652212380cedb1ea36.svg)](https://classroom.github.com/a/C934JvXq)
 # Multimodal Misinformation Detection using Large Vision-Language Models
 
 This repository is the official implementation of [Multimodal Misinformation Detection using Large Vision-Language Models](https://doi.org/10.1145/3627673.3679826) published in CIKM 2024.
