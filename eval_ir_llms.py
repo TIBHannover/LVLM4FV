@@ -152,7 +152,7 @@ def mocheg_ir_loop(model,train_queries,corpus,question,batch_size,use_llm_score,
                     train_queries[query_key]['predictions'].append(
                         {"candidate-image-key": batch_key, "generated-text": generated_text, "score": generated_text_proba}) 
             else:
-                generated_texts = model.get_response(images=batch_images, queries=[prompt] * batch_size) 
+                generated_texts = model.get_response_IRS(images=batch_images, queries=[prompt] * batch_size)
                 #generated_texts = model.get_response_others(images=batch_images, queries=[prompt] * batch_size) 
                 for generated_text, batch_key in zip(generated_texts, batch_keys):
                     train_queries[query_key]['predictions'].append(
@@ -193,8 +193,9 @@ def mocheg_ir_loop_text(model,train_queries,mocheg_corpus,corpus,question,batch_
             prompt = get_prompt_text(question,train_queries[query_key]['query'], batch_images)
             #generated_texts = model.get_response_orig(prompt)
             #generated_texts, generated_texts_probas = model.get_response_score(prompt)
-            generated_texts, generated_texts_probas = model.get_response_pbc(prompt) 
-            if use_llm_score==True:
+            if use_llm_score == True:
+                generated_texts, generated_texts_probas = model.get_response_pbc(prompt)
+
                 for generated_text, batch_key, generated_text_proba in zip(generated_texts, batch_keys, generated_texts_probas):
                     train_queries[query_key]['predictions'].append(
                         {"candidate-image-key": batch_key, "generated-text": generated_text, "score": generated_text_proba}) 
@@ -202,7 +203,7 @@ def mocheg_ir_loop_text(model,train_queries,mocheg_corpus,corpus,question,batch_
             #    train_queries[query_key]['predictions'].append(
             #        {"candidate-image-key": batch_key, "generated-text": generated_text}) 
             else:
-                generated_texts = model.get_response_orig(prompt)
+                generated_texts = model.get_response_IRS(prompt)
                 for generated_text, batch_key in zip(generated_texts, batch_keys):
                     train_queries[query_key]['predictions'].append(
                         {"candidate-image-key": batch_key, "generated-text": generated_text})                 

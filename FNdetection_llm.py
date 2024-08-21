@@ -541,7 +541,7 @@ def get_args():
     parser.add_argument('--task1_out_img', help='input', default='./retrieval/output/ir_llms/factify/00022-valid-Salesforce-instructblip-flan-t5-xl-2024-05-06_20-01-18') #VLM img evidence for Factify valid
     #parser.add_argument('--task1_out_img', help='input', default='./retrieval/output/ir_llms/annotation/mocheg_plus_vlm_top10/00004-test-Open-Orca-Mistral-7B-OpenOrca-2024-01-23_22-27-49') #VLM union text evidence folder
     parser.add_argument('--train_data_folder', help='input',default='./data/train') 
-    parser.add_argument('--test_data_folder', help='input', default='./data/factify/valid')
+    parser.add_argument('--test_data_folder', help='input', default='./data/test')
     parser.add_argument('--val_data_folder', help='input', default='./data/val')
 ################# related args for Mocheg code to be run ######################################################################
     parser.add_argument("--max_seq_length", type=int,default=2048)# txt,img
