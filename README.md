@@ -1,7 +1,16 @@
 # Multimodal Misinformation Detection using Large Vision-Language Models
 
 This repository is the official implementation of [Multimodal Misinformation Detection using Large Vision-Language Models](https://doi.org/10.1145/3627673.3679826) published in CIKM 2024.
-
+Please use the following citation:
+```
+@InProceedings{cikm_Tahmasebi24,
+  author    = {Sahar Tahmasebi, Eric Müller-Budack and Ralph Ewerth},
+  booktitle = {ACM International Conference on Information and Knowledge Management, CIKM 2024, Boise, Idaho, United States of America, October 21-25, 2024},
+  title     = {Multimodal Misinformation Detection using Large Vision-Language Models},
+  year      = {2024},
+  doi       = {10.1145/3627673.3679826},
+}
+```
 ## Requirements
 
 To install requirements:
