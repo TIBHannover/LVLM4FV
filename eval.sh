@@ -1,8 +1,8 @@
 ######### evidence retrieval
 #image retrieval
-python eval_ir_llms.py --mode=test --media=img --model_name==Salesforce/instructblip-flan-t5-xl --use_llm_score=False --mocheg_result_path=retrieval/img_checkpoint/query_result_img.pkl --prompt=Is this image and text query mentioning the same person or topic? answer with yes or no.
+python eval_ir_llms.py --mode=test --media=img --model_name==Salesforce/instructblip-flan-t5-xl --use_llm_score=False --mocheg_result_path=checkpoints/mocheg_img_results/query_result_img.pkl --prompt=Is this image and text query mentioning the same person or topic? answer with yes or no.
 #Text retrieval
-python eval_ir_llms.py --mode=test --media=txt --model_name==Mistral-7B-OpenOrca --use_llm_score=True --mocheg_result_path=retrieval/txt_checkpoint/query_result_txt.pkl --prompt=Is this corpus related to the query? Answer with yes or no.
+python eval_ir_llms.py --mode=test --media=txt --model_name==Mistral-7B-OpenOrca --use_llm_score=True --mocheg_result_path=checkpoints/mocheg_txt_results/query_result_txt.pkl --prompt=Is this corpus related to the query? Answer with yes or no.
 
 
 
