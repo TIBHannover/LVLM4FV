@@ -8,7 +8,7 @@ python eval_ir_llms.py --mode=test --media=txt --model_name==Mistral-7B-OpenOrca
 
 ######## Fact verification
 # with text evidence
-python FNdetection_llm.py --media=txt --model_name=Open-Orca/Mistral-7B-OpenOrca --evidence_type=gold --two_level_prompting=True --task1_out=retrieval/output/ir_llms/mocheg/txt --level1_prompt=Is this text evidence sufficient to confirm or reject this claim?answer with yes if it is suffiecient and aswer with no if it is not enough information ----level2_prompt=Does this text evidence support or reject this claim?answer with yes if it supports, answer with no if it rejects.
+python FNdetection_llm.py --media=txt --model_name=Open-Orca/Mistral-7B-OpenOrca --evidence_type=gold --two_level_prompting=False --task1_out=retrieval/output/ir_llms/mocheg/txt --prompt=Does this evidence support or refute this claim?answer with yes if it supports, answer with no if it refutes and answer with none if it does not provide enough information.
 # with multimodal evidence
 python FNdetection_llm.py --media=multimodal --model_name=llava-hf/llava-v1.6-mistral-7b-hf --evidence_type=gold --two_level_prompting=True --task1_out=retrieval/output/ir_llms/mocheg/txt --task1_out==retrieval/output/ir_llms/mocheg/img --level1_prompt=Is this image and text evidence sufficient to confirm or reject this claim?answer with yes if they are suffiecient and aswer with no if they are not enough information ----level2_prompt=Does this text and image evidence support or reject this claim?answer with yes if they supports, answer with no if they reject.
 
