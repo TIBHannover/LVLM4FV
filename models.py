@@ -470,7 +470,12 @@ class LLaVa_verification_multimodal:
             for answer in answer_set:
                 self.answer_sets_multiple_token_id[label].append(self._processor.tokenizer(answer).input_ids[-1])
 
-    def get_response_YN(self, mode, images, queries):
+    def get_response_binary(self, mode, images, queries):
+        ##### this function applies the softmax on "supported" and "refuted" token only (prompt-based classification)
+        ##### return:
+        ####   1- if its for binary classification: the max score between "suuported" and "refuted" as the score; and its token as generated text
+        ###    2- if for level1 of two-level prompting: the max score between "yes (enough informartion)" and no(NEI) as the score; and its token as generated text
+        #### use: for verification task, two_level prompting=True or for binary classification
         inputs = self._processor(images=images, text=queries, return_tensors="pt",
                                  # , torch.bfloat16
                                  truncation=True, max_length=self._params['max_length']).to(self._device)
@@ -497,6 +502,10 @@ class LLaVa_verification_multimodal:
         return sequences, sequence_probas
 
     def get_response_YNN(self, images, queries):
+        ######### get response/yes/no/none function
+        ######### this function applies the softmax on "yes" and "no" and "none" tokens only (prompt-based classification)
+        ########  return: the max score between "suuported" and "refuted" and "NEI", as the score; and its token as generated text
+        ######## use: for verification task, two_level prompting=False (setting on normalization is different from YNO)
         inputs = self._processor(images=images, text=queries, return_tensors="pt"
                                  # , torch.bfloat16
                                  , truncation=True, max_length=self._params['max_length']).to(self._device)
