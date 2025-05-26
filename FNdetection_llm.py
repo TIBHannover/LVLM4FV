@@ -233,12 +233,12 @@ def verification_loop_txt_two_level(model, task1_out, corpus, level1_question, l
 
 
 def verification_loop_multimodal_two_level(model, task1_out, txt_corpus, level1_question, level2_question, batch_size,
-                                           top_k, evidence_type, class_type, run_dir):
+                                           top_k, evidence_type,data_folder, run_dir):
     ############################# first level prompt: detect NEI class ########################
     model_mode = 'level1'
     class_type = 'binary'
     level1_out = verification_loop_multimodal(model, task1_out, txt_corpus, level1_question, batch_size, top_k,
-                                              evidence_type, class_type, model_mode, run_dir)
+                                              evidence_type, class_type, model_mode,data_folder, run_dir)
     # level1_out=majority_voting(level1_out,run_dir)
     level1_out = level1_filtering(level1_out, run_dir)
     level2 = level1_out.copy()
@@ -251,7 +251,7 @@ def verification_loop_multimodal_two_level(model, task1_out, txt_corpus, level1_
     # question="Does this evidence confirm or reject this claim?answer with yes if it confirms, answer with no if it rejects."
     model_mode = 'binary'
     level2_out = verification_loop_multimodal(model, level2, txt_corpus, level2_question, batch_size, top_k,
-                                              evidence_type, class_type, model_mode, run_dir)
+                                              evidence_type, class_type, model_mode,data_folder, run_dir)
     level2 = majority_voting(level2_out, run_dir)
     with open(os.path.join(run_dir, 'level2_output_dict.pkl'), 'wb') as f:
         pickle.dump(level2, f)
@@ -315,21 +315,20 @@ def verification_loop_img(model, task1_out, question, batch_size, top_k, evidenc
 
 
 def verification_loop_multimodal(model, task1_out, txt_corpus, question, batch_size, top_k, evidence_type, class_type,
-                                 model_mode, run_dir):
+                                 model_mode,data_folder, run_dir):
     start_time = time.time()
     Transforms = T.Resize((224, 224))
     for q_key in tqdm.tqdm(task1_out):
         task1_out[q_key]['top_verif_pred'] = []
         E_pool_img = {}
         E_pool_txt = {}
-
+        img_dir = os.path.join(data_folder, 'images')
         if evidence_type == 'retrieved':
             img_evidences = task1_out[q_key][f'top_pred_{top_k}_img']
             txt_evidences = task1_out[q_key][f'top_pred_{top_k}']
             for c_key in img_evidences:
-                img = T.PILToTensor()(Image.open(
-                    os.path.join('./data/Factify/valid/images', img_evidences[c_key]['candidate-image-key'])).convert(
-                    "RGB"))
+                #img = T.PILToTensor()(Image.open(os.path.join('./data/Factify/valid/images', img_evidences[c_key]['candidate-image-key'])).convert("RGB"))
+                img = T.PILToTensor()(Image.open(os.path.join(img_dir, img_evidences[c_key]['candidate-image-key'])).convert("RGB"))
                 E_pool_img[img_evidences[c_key]['candidate-image-key']] = Transforms(img)
                 E_pool_txt[txt_evidences[c_key]['candidate-image-key']] = txt_corpus[
                     txt_evidences[c_key]['candidate-image-key']]
@@ -337,7 +336,8 @@ def verification_loop_multimodal(model, task1_out, txt_corpus, question, batch_s
             img_evidences = task1_out[q_key]['pos_img']
             txt_evidences = task1_out[q_key]['pos']
             for c_key in img_evidences:
-                img = T.PILToTensor()(Image.open(os.path.join('./data/Factify/valid/images', c_key)).convert("RGB"))
+                #img = T.PILToTensor()(Image.open(os.path.join('./data/Factify/valid/images', c_key)).convert("RGB"))
+                img = T.PILToTensor()(Image.open(os.path.join(img_dir, c_key)).convert("RGB"))
                 E_pool_img[c_key] = Transforms(img)
             for key in txt_evidences:
                 E_pool_txt[key] = txt_corpus[key]
@@ -492,10 +492,10 @@ def test(args):
     if args.media == "txt":
         corpus = load_corpus_txt(args.data_folder, corpus_max_size=0)
     elif args.media == "img":
-        corpus = load_corpus_img(args.test_data_folder, corpus_max_size=0)
+        corpus = load_corpus_img(args.data_folder, corpus_max_size=0)
     else:
-        text_corpus = load_corpus_txt(args.test_data_folder, corpus_max_size=0)
-        image_corpus = load_corpus_img(args.test_data_folder, corpus_max_size=0)
+        text_corpus = load_corpus_txt(args.data_folder, corpus_max_size=0)
+        image_corpus = load_corpus_img(args.data_folder, corpus_max_size=0)
     ################################### Load the outut of task 1 ##########################################
     if args.media == 'multimodal':
         with open(os.path.join(args.task1_out, 'test_reranked_output_dict.pkl'), 'rb') as f:
@@ -555,11 +555,9 @@ def test(args):
         if args.two_level_prompting:
             final_out = verification_loop_multimodal_two_level(model, task1_out, text_corpus, args.level1_prompt,
                                                                args.level2_prompt, args.batch_size, args.top_k,
-                                                               args.evidence_type, args.class_type, args.run_dir)
+                                                               args.evidence_type,args.data_folder, args.run_dir)
         else:
-            verificaiton_out = verification_loop_multimodal(model, task1_out, text_corpus, args.prompt, args.batch_size,
-                                                            args.top_k, args.evidence_type, args.class_type, 'binary',
-                                                            args.run_dir)
+            verificaiton_out = verification_loop_multimodal(model,task1_out,text_corpus,args.prompt,args.batch_size,args.top_k,args.evidence_type,'multiple',"",args.data_folder,args.run_dir)
             final_out = majority_voting(verificaiton_out, args.run_dir)
     ############################## calculate the metrics and plot ###########################################
 
@@ -596,7 +594,7 @@ def get_args():
     parser.add_argument("--level2_prompt",
                         default="Does this text evidence support or refute this claim?answer with yes if it supports, answer with no if it refutes.")
     # parser.add_argument('--task1_out', help='input', default='./retrieval/output/ir_llms/annotation/mocheg_plus_vlm_top10/00002-test-Salesforce-instructblip-flan-t5-xl-2024-01-23_21-43-49') # VLM union image evidence folder
-    # parser.add_argument('--task1_out', help='input', default='./retrieval/output/ir_llms/00073-test-Salesforce-instructblip-flan-t5-xl-2023-10-22_22-50-02')  # VLM image evidence folder
+    parser.add_argument('--task1_out_img', help='input', default='./retrieval/output/ir_llms/00073-test-Salesforce-instructblip-flan-t5-xl-2023-10-22_22-50-02')  # VLM image evidence folder
     parser.add_argument('--task1_out', help='input',
                         default='./retrieval/output/ir_llms/00103-test-Open-Orca-Mistral-7B-OpenOrca-2023-12-04_13-45-08')  # VLM text evidence folder
     # parser.add_argument('--task1_out', help='input', default='./retrieval/output/ir_llms/factify/00019-valid-Open-Orca-Mistral-7B-OpenOrca-2024-04-23_12-49-05') #Factify validation set text evidence folder
