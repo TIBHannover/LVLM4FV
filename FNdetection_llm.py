@@ -327,8 +327,8 @@ def verification_loop_multimodal(model, task1_out, txt_corpus, question, batch_s
             img_evidences = task1_out[q_key][f'top_pred_{top_k}_img']
             txt_evidences = task1_out[q_key][f'top_pred_{top_k}']
             for c_key in img_evidences:
-                #img = T.PILToTensor()(Image.open(os.path.join('./data/Factify/valid/images', img_evidences[c_key]['candidate-image-key'])).convert("RGB"))
-                img = T.PILToTensor()(Image.open(os.path.join(img_dir, img_evidences[c_key]['candidate-image-key'])).convert("RGB"))
+                #img = T.PILToTensor()(Image.open(os.path.join(img_dir, img_evidences[c_key]['candidate-image-key'])).convert("RGB"))
+                img = Image.open(os.path.join(img_dir, c_key)).convert("RGB")
                 E_pool_img[img_evidences[c_key]['candidate-image-key']] = Transforms(img)
                 E_pool_txt[txt_evidences[c_key]['candidate-image-key']] = txt_corpus[
                     txt_evidences[c_key]['candidate-image-key']]
@@ -337,13 +337,13 @@ def verification_loop_multimodal(model, task1_out, txt_corpus, question, batch_s
             txt_evidences = task1_out[q_key]['pos']
             for c_key in img_evidences:
                 #img = T.PILToTensor()(Image.open(os.path.join('./data/Factify/valid/images', c_key)).convert("RGB"))
-                img = T.PILToTensor()(Image.open(os.path.join(img_dir, c_key)).convert("RGB"))
+                img = Image.open(os.path.join(img_dir, c_key)).convert("RGB")
                 E_pool_img[c_key] = Transforms(img)
             for key in txt_evidences:
                 E_pool_txt[key] = txt_corpus[key]
 
         img_corpus_dataset = IRDataset(corpus=E_pool_img)
-        corpus_loader = DataLoader(img_corpus_dataset, batch_size=batch_size, shuffle=False)
+        corpus_loader = DataLoader(img_corpus_dataset, batch_size=batch_size, shuffle=False,collate_fnexit=img_corpus_dataset.collate_fn)
 
         for batch in corpus_loader:
             batch_corpus = batch['corpus']
