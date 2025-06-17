@@ -343,7 +343,7 @@ def verification_loop_multimodal(model, task1_out, txt_corpus, question, batch_s
                 E_pool_txt[key] = txt_corpus[key]
 
         img_corpus_dataset = IRDataset(corpus=E_pool_img)
-        corpus_loader = DataLoader(img_corpus_dataset, batch_size=batch_size, shuffle=False,collate_fnexit=img_corpus_dataset.collate_fn)
+        corpus_loader = DataLoader(img_corpus_dataset, batch_size=batch_size, shuffle=False,collate_fn=img_corpus_dataset.collate_fn)
 
         for batch in corpus_loader:
             batch_corpus = batch['corpus']
@@ -352,7 +352,7 @@ def verification_loop_multimodal(model, task1_out, txt_corpus, question, batch_s
                 txt_evidenc = E_pool_txt[txt_c]
                 prompt = get_prompt_multimodal(task1_out[q_key]['query'], question, txt_evidenc)
                 if class_type == 'binary':
-                    generated_texts, generated_texts_probas = model.get_response_YN(model_mode, images=batch_corpus,
+                    generated_texts, generated_texts_probas = model.get_response_binary(model_mode, images=batch_corpus,
                                                                                     queries=[prompt] * batch_size)
                 else:
                     generated_texts, generated_texts_probas = model.get_response_YNN(images=batch_corpus,
