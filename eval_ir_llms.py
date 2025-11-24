@@ -373,9 +373,9 @@ def test(args):
         test_output=mocheg_ir_loop(model,train_queries,corpus,args.prompt,args.batch_size,args.use_llm_score,output_path=args.run_dir)
         
         if args.use_llm_score:
-            final_output,_=reranker_llm_score_pbc(test_output,args.top_k,args.run_dir)
+            final_output=reranker_llm_score_pbc(test_output,args.top_k,args.run_dir)
         else:
-            final_output,_=reranker(test_output,corpus,args.top_k,args.run_dir)
+            final_output=reranker(test_output,corpus,args.top_k,args.run_dir)
     else:
         mocheg_txt_corpus=torch.load(args.mocheg_result_path)
         corpus=data_dealer.load_corpus(args.test_data_folder,  corpus_max_size)
@@ -385,10 +385,10 @@ def test(args):
         test_output=mocheg_ir_loop_text(model,train_queries,mocheg_txt_corpus,corpus,args.prompt,args.batch_size,args.use_llm_score,output_path=args.run_dir)
         test_output=answer_mapping(test_output,args.run_dir)
         if args.use_llm_score:
-            final_output,_=reranker_llm_score_pbc(test_output,args.top_k,args.run_dir)
-            #final_output,_=reranker_llm_score(test_output,args.top_k,args.run_dir)
+            final_output=reranker_llm_score_pbc(test_output,args.top_k,args.run_dir)
+            #final_output=reranker_llm_score(test_output,args.top_k,args.run_dir)
         else:
-            final_output,_=reranker(test_output,mocheg_txt_corpus,args.top_k,args.run_dir)
+            final_output=reranker(test_output,mocheg_txt_corpus,args.top_k,args.run_dir)
             
 ############################## calculate the metrics and plot ###########################################
     
