@@ -146,7 +146,7 @@ def mocheg_ir_loop(model,train_queries,corpus,question,batch_size,use_llm_score,
             batch_keys = batch['key']
             #q1=[prompt] * batch_size
             if use_llm_score==True:
-                generated_texts, generated_texts_probas = model.get_response_pbc(images=batch_images, queries=[prompt] * batch_size) 
+                generated_texts, generated_texts_probas = model.get_response_YN(images=batch_images, queries=[prompt] * batch_size) 
             
                 for generated_text, batch_key, generated_text_proba in zip(generated_texts, batch_keys, generated_texts_probas):
                     train_queries[query_key]['predictions'].append(
@@ -194,7 +194,7 @@ def mocheg_ir_loop_text(model,train_queries,mocheg_corpus,corpus,question,batch_
             #generated_texts = model.get_response_orig(prompt)
             #generated_texts, generated_texts_probas = model.get_response_score(prompt)
             if use_llm_score == True:
-                generated_texts, generated_texts_probas = model.get_response_pbc(prompt)
+                generated_texts, generated_texts_probas = model.get_response_YN(prompt)
 
                 for generated_text, batch_key, generated_text_proba in zip(generated_texts, batch_keys, generated_texts_probas):
                     train_queries[query_key]['predictions'].append(
